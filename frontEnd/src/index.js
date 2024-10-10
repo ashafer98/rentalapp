@@ -1,11 +1,17 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
-import './App.css';
+import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
 import App from './App';
+import { MyContextProvider } from './context/MyContext';
 
-ReactDOM.render(
+const container = document.getElementById('root');
+const root = createRoot(container); // React 18 uses createRoot
+root.render(
   <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-  document.getElementById('root')
+    <MyContextProvider>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </MyContextProvider>
+  </React.StrictMode>
 );

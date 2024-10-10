@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import './Applicant.css'; // Add this for custom CSS styling
+import './Register.css'; // Add this for custom CSS styling
 
-const Applicant = () => {
+const Register = () => {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -28,7 +28,7 @@ const Applicant = () => {
       });
 
       if (response.ok) {
-        setStatus('Application submitted successfully!');
+        setStatus('Application submitted successfully! Try logging in...');
         setFormData({
           firstName: '',
           lastName: '',
@@ -46,7 +46,7 @@ const Applicant = () => {
   };
 
   return (
-    <div className="applicant-card">
+    <div className="Register-card">
       <h2>Rental Application</h2>
       <form onSubmit={handleSubmit}>
         <div className="form-group">
@@ -106,4 +106,4 @@ const Applicant = () => {
   );
 };
 
-export default Applicant;
+export default Register;

@@ -1,22 +1,15 @@
-import React, { useState } from 'react';
-import NavBar from './Navbar';
-import Footer from './components/Footer';
-import Applicant from './components/Applicant';
+import React from 'react';
+import { Routes, Route } from 'react-router-dom';
 import Home from './components/Home';
-import './App.css';
+// import About from './components/About';
 
-function App() {
-  const [showApplicant, setShowApplicant] = useState(false);
-
+const App = () => {
   return (
-    <div className="App">
-      <NavBar onNavigate={(section) => setShowApplicant(section === 'applicant')} />
-      
-      {showApplicant ? <Applicant /> : <Home />}
-
-      <Footer />
-    </div>
+    <Routes>
+      <Route path="/" element={<Home />} />
+      {/* <Route path="/about" element={<About />} /> */}
+    </Routes>
   );
-}
+};
 
 export default App;
