@@ -57,7 +57,10 @@ func createUser(firstName, lastName, email, password, phone string) error {
 // GetUserByEmail retrieves a user by email
 func getUserByEmail(email string) (*User, error) {
     var user User
-    err := db.QueryRow("SELECT id, email, password FROM users WHERE email=$1", email).Scan(&user.ID, &user.Email, &user.Password)
+    // Update the query to select firstName and lastName in addition to id, email, and password
+    err := db.QueryRow("SELECT id, firstName, lastName, email, password FROM users WHERE email=$1", email).
+        Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.Password)
+    
     if err != nil {
         if err == sql.ErrNoRows {
             return nil, nil // No user found, return nil

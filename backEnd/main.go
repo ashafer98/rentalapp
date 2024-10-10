@@ -18,7 +18,7 @@ func main() {
     r.HandleFunc("/api/register", createUserHandler).Methods("POST")
     r.HandleFunc("/api/login", loginHandler).Methods("POST")
     r.HandleFunc("/api/reset-password", resetPasswordHandler).Methods("POST")
-
+    r.HandleFunc("/api/user", getUserHandler).Methods("GET") // New route for getting user details
     // Set up CORS middleware
     c := cors.New(cors.Options{
         AllowedOrigins:   []string{"http://localhost:3000"}, // Allow your frontend URL

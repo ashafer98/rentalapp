@@ -15,6 +15,8 @@ type User struct {
     ID       int
     Email    string
     Password string
+    FirstName string `json:"firstName"`
+    LastName  string `json:"lastName"`
 }
 
 // Password Hashing

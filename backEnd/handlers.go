@@ -94,3 +94,47 @@ func resetPasswordHandler(w http.ResponseWriter, r *http.Request) {
 
     w.WriteHeader(http.StatusOK)
 }
+
+
+// GetUserHandler retrieves user details based on a valid JWT token
+func getUserHandler(w http.ResponseWriter, r *http.Request) {
+    // Extract token from Authorization header
+    tokenHeader := r.Header.Get("Authorization")
+    if tokenHeader == "" {
+        http.Error(w, "Authorization token is required", http.StatusUnauthorized)
+        return
+    }
+
+    // The token usually comes as "Bearer <token>", so we split it
+    token := tokenHeader[len("Bearer "):]
+
+    // Verify the token
+    claims, err := verifyJWT(token)
+    if err != nil {
+        http.Error(w, "Invalid or expired token", http.StatusUnauthorized)
+        return
+    }
+
+    // Fetch user by email from claims
+    user, err := getUserByEmail(claims.Email)
+    if err != nil || user == nil {
+        http.Error(w, "User not found", http.StatusNotFound)
+        return
+    }
+
+    // Return the user's details, excluding the password
+    userResponse := struct {
+        ID        int    `json:"id"`
+        FirstName string `json:"firstName"`
+        LastName  string `json:"lastName"`
+        Email     string `json:"email"`
+    }{
+        ID:        user.ID,
+        FirstName: user.FirstName,
+        LastName:  user.LastName,
+        Email:     user.Email,
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(userResponse)
+}
