@@ -11,7 +11,7 @@ const LoginPage = () => {
         e.preventDefault();
 
         try {
-            const response = await fetch('/api/login', {
+            const response = await fetch('http://localhost:8000/api/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -24,7 +24,7 @@ const LoginPage = () => {
                 // Store the token in localStorage
                 localStorage.setItem('token', data.token);
                 // Redirect to the user homepage
-                navigate('/homepage');
+                navigate('/dashboard');
             } else {
                 setError('Invalid credentials, please try again.');
             }

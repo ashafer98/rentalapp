@@ -2,6 +2,7 @@ package main
 
 import (
     "database/sql"
+    "fmt"
     _ "github.com/lib/pq"
     "log"
 )
@@ -12,13 +13,13 @@ var db *sql.DB
 func initDB() {
     var err error
     db, err = sql.Open("postgres", "user=postgres dbname=rentalApp sslmode=disable password=root")
-    if err != nil {
+    if (err != nil) {
         log.Fatal("Failed to connect to the database:", err)
     }
 
     // Ping the database to verify the connection
     err = db.Ping()
-    if err != nil {
+    if (err != nil) {
         log.Fatal("Failed to ping the database:", err)
     }
     log.Println("Database connection established successfully")
@@ -26,11 +27,25 @@ func initDB() {
 
 // CreateUser inserts a new user into the database with first name, last name, email, hashed password, and phone
 func createUser(firstName, lastName, email, hashedPassword, phone string) error {
+    // Check if the email already exists
+    var exists bool
+    err := db.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE email=$1)", email).Scan(&exists)
+    if err != nil {
+        log.Printf("Error checking if email exists: %v", err)
+        return err
+    }
+
+    if exists {
+        log.Printf("User with email %s already exists", email)
+        return fmt.Errorf("user with email %s already exists", email)
+    }
+
+    // Insert the new user
     query := `INSERT INTO users (firstName, lastName, email, password, phone) VALUES ($1, $2, $3, $4, $5)`
-    _, err := db.Exec(query, firstName, lastName, email, hashedPassword, phone)
+    _, err = db.Exec(query, firstName, lastName, email, hashedPassword, phone)
     if err != nil {
         log.Printf("Error creating user: %v", err)
-        return err
+        return fmt.Errorf("error creating user: %v", err)
     }
     log.Printf("Successfully created user: %s %s", firstName, lastName)
     return nil

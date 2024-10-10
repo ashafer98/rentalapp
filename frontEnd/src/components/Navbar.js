@@ -12,7 +12,7 @@ const Navbar = () => {
 
   return (
     <nav className="navbar">
-      <div className="navbar-container">
+      <div className="navbar-list">
         <div className="logo">
           <Link to="/">
             <img src={logo} alt="Webb Real Estate Logo" className="hero-logo-nav" />
@@ -26,10 +26,10 @@ const Navbar = () => {
           <li>
             <Link to="/register">Register</Link>  {/* Use Link for navigation */}
           </li>
-          <li><a href="#features">Features</a></li>
-          <li><a href="#search-apply">Search & Apply</a></li>
-          <li><a href="#how-it-works">How It Works</a></li>
-          <li><a href="#contact">Contact</a></li>
+          {/* <li><Link to="/#features">Features</Link></li>
+          <li><Link to="/#search-apply">Search & Apply</Link></li>
+          <li><Link to="/#how-it-works">How It Works</Link></li>
+          <li><Link to="/#contact">Contact</Link></li> */}
         </ul>
       </div>
     </nav>

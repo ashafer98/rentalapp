@@ -4,7 +4,7 @@ package main
 import (
     "encoding/json"
     "net/http"
-    "log"
+    "fmt"
 )
 
 // Struct for handling incoming form data from the React app
@@ -16,34 +16,37 @@ type ApplicantData struct {
     Phone     string `json:"phone"`
 }
 
-// Registration handler to accept and process data from the frontend
-func registerHandler(w http.ResponseWriter, r *http.Request) {
-    var reqData ApplicantData
+// HTTP handler for creating a user
+func createUserHandler(w http.ResponseWriter, r *http.Request) {
+    var user struct {
+        FirstName      string `json:"firstName"`
+        LastName       string `json:"lastName"`
+        Email          string `json:"email"`
+        HashedPassword string `json:"hashedPassword"`
+        Phone          string `json:"phone"`
+    }
 
-    // Decode the incoming JSON data
-    err := json.NewDecoder(r.Body).Decode(&reqData)
+    // Decode the request body into the user struct
+    err := json.NewDecoder(r.Body).Decode(&user)
     if err != nil {
-        http.Error(w, "Invalid input", http.StatusBadRequest)
+        http.Error(w, "Invalid request payload", http.StatusBadRequest)
         return
     }
 
-    // Hash the password before storing it
-    hashedPassword, err := hashPassword(reqData.Password)
+    // Call createUser function
+    err = createUser(user.FirstName, user.LastName, user.Email, user.HashedPassword, user.Phone)
     if err != nil {
-        http.Error(w, "Error hashing password", http.StatusInternalServerError)
+        if err.Error() == fmt.Sprintf("user with email %s already exists", user.Email) {
+            http.Error(w, err.Error(), http.StatusConflict)
+        } else {
+            http.Error(w, "Error creating user", http.StatusInternalServerError)
+        }
         return
     }
 
-    // Create the user in the database (this is the call to the createUser function from databases.go)
-    err = createUser(reqData.FirstName, reqData.LastName, reqData.Email, hashedPassword, reqData.Phone)
-    if err != nil {
-        http.Error(w, "Error creating user", http.StatusInternalServerError)
-        return
-    }
-
-    // Send success response
+    // Respond with success message
     w.WriteHeader(http.StatusCreated)
-    log.Printf("New applicant registered: %s %s", reqData.FirstName, reqData.LastName)
+    json.NewEncoder(w).Encode(map[string]string{"message": "User created successfully"})
 }
 
 

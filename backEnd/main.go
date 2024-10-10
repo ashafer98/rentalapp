@@ -15,7 +15,7 @@ func main() {
     r := mux.NewRouter()
 
     // Define your routes
-    r.HandleFunc("/api/register", registerHandler).Methods("POST")
+    r.HandleFunc("/api/register", createUserHandler).Methods("POST")
     r.HandleFunc("/api/login", loginHandler).Methods("POST")
     r.HandleFunc("/api/reset-password", resetPasswordHandler).Methods("POST")
 

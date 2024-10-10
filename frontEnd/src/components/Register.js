@@ -37,7 +37,15 @@ const Register = () => {
           phone: '',
         });
       } else {
-        setStatus('Error submitting application.');
+        const contentType = response.headers.get('Content-Type');
+        let errorMessage = 'Error submitting application.';
+        if (contentType && contentType.includes('application/json')) {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } else {
+          errorMessage = await response.text();
+        }
+        setStatus(`Error: ${errorMessage}`);
       }
     } catch (error) {
       console.error('Error:', error);
