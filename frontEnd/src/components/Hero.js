@@ -1,5 +1,5 @@
 import React from 'react';
-import logo from './../photos/weebbrealestaeFullLgog.jpg';  // Adjust the path based on where your image is stored
+import logo from '../photos/weebbrealestaeFullLgog.jpg';  // Adjust the path based on where your image is stored
 
 const Hero = () => {
   return (
