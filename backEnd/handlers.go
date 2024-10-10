@@ -4,7 +4,6 @@ package main
 import (
     "encoding/json"
     "net/http"
-    "fmt"
 )
 
 // Struct for handling incoming form data from the React app
@@ -18,35 +17,30 @@ type ApplicantData struct {
 
 // HTTP handler for creating a user
 func createUserHandler(w http.ResponseWriter, r *http.Request) {
-    var user struct {
-        FirstName      string `json:"firstName"`
-        LastName       string `json:"lastName"`
-        Email          string `json:"email"`
-        HashedPassword string `json:"hashedPassword"`
-        Phone          string `json:"phone"`
+    // Parse request data, assuming it's coming as JSON
+    var reqData struct {
+        FirstName string `json:"firstName"`
+        LastName  string `json:"lastName"`
+        Email     string `json:"email"`
+        Password  string `json:"password"`
+        Phone     string `json:"phone"`
     }
 
-    // Decode the request body into the user struct
-    err := json.NewDecoder(r.Body).Decode(&user)
+    err := json.NewDecoder(r.Body).Decode(&reqData)
     if err != nil {
         http.Error(w, "Invalid request payload", http.StatusBadRequest)
         return
     }
 
-    // Call createUser function
-    err = createUser(user.FirstName, user.LastName, user.Email, user.HashedPassword, user.Phone)
+    // Create user and handle potential errors
+    err = createUser(reqData.FirstName, reqData.LastName, reqData.Email, reqData.Password, reqData.Phone)
     if err != nil {
-        if err.Error() == fmt.Sprintf("user with email %s already exists", user.Email) {
-            http.Error(w, err.Error(), http.StatusConflict)
-        } else {
-            http.Error(w, "Error creating user", http.StatusInternalServerError)
-        }
+        http.Error(w, err.Error(), http.StatusConflict) // Return the specific error message
         return
     }
 
-    // Respond with success message
     w.WriteHeader(http.StatusCreated)
-    json.NewEncoder(w).Encode(map[string]string{"message": "User created successfully"})
+    w.Write([]byte("User created successfully"))
 }
 
 

@@ -2,9 +2,9 @@ package main
 
 import (
     "database/sql"
-    "fmt"
     _ "github.com/lib/pq"
     "log"
+    "fmt"
 )
 
 var db *sql.DB
@@ -13,40 +13,43 @@ var db *sql.DB
 func initDB() {
     var err error
     db, err = sql.Open("postgres", "user=postgres dbname=rentalApp sslmode=disable password=root")
-    if (err != nil) {
+    if err != nil {
         log.Fatal("Failed to connect to the database:", err)
     }
 
     // Ping the database to verify the connection
     err = db.Ping()
-    if (err != nil) {
+    if err != nil {
         log.Fatal("Failed to ping the database:", err)
     }
     log.Println("Database connection established successfully")
 }
 
-// CreateUser inserts a new user into the database with first name, last name, email, hashed password, and phone
-func createUser(firstName, lastName, email, hashedPassword, phone string) error {
+// CreateUser inserts a new user into the database
+func createUser(firstName, lastName, email, password, phone string) error {
     // Check if the email already exists
-    var exists bool
-    err := db.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE email=$1)", email).Scan(&exists)
+    existingUser, err := getUserByEmail(email)
     if err != nil {
-        log.Printf("Error checking if email exists: %v", err)
+        return err
+    }
+    if existingUser != nil {
+        // Return a specific error message when a duplicate email is found
+        return fmt.Errorf("User with email %s already exists", email)    }
+
+    // Hash the password before saving to the database
+    hashedPassword, err := hashPassword(password)
+    if err != nil {
         return err
     }
 
-    if exists {
-        log.Printf("User with email %s already exists", email)
-        return fmt.Errorf("user with email %s already exists", email)
-    }
-
-    // Insert the new user
+    // Insert the new user with the hashed password
     query := `INSERT INTO users (firstName, lastName, email, password, phone) VALUES ($1, $2, $3, $4, $5)`
     _, err = db.Exec(query, firstName, lastName, email, hashedPassword, phone)
     if err != nil {
-        log.Printf("Error creating user: %v", err)
-        return fmt.Errorf("error creating user: %v", err)
+        log.Printf("Error inserting user into database: %v", err)
+        return err
     }
+
     log.Printf("Successfully created user: %s %s", firstName, lastName)
     return nil
 }
@@ -57,23 +60,9 @@ func getUserByEmail(email string) (*User, error) {
     err := db.QueryRow("SELECT id, email, password FROM users WHERE email=$1", email).Scan(&user.ID, &user.Email, &user.Password)
     if err != nil {
         if err == sql.ErrNoRows {
-            log.Printf("No user found with email: %s", email)
-            return nil, nil
+            return nil, nil // No user found, return nil
         }
-        log.Printf("Error querying user by email: %v", err)
-        return nil, err
+        return nil, err // Some other error occurred, return the error
     }
     return &user, nil
-}
-
-// UpdateUserPassword updates a user's password in the database
-func updateUserPassword(email, hashedPassword string) error {
-    query := `UPDATE users SET password=$1 WHERE email=$2`
-    _, err := db.Exec(query, hashedPassword, email)
-    if err != nil {
-        log.Printf("Error updating password for user with email: %s", email)
-        return err
-    }
-    log.Printf("Password updated for user with email: %s", email)
-    return nil
 }
