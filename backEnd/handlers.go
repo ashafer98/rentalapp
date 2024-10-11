@@ -13,6 +13,7 @@ type ApplicantData struct {
     Email     string `json:"email"`
     Password  string `json:"password"`
     Phone     string `json:"phone"`
+    IsAdmin   bool `json:"isAdmin"`
 }
 
 // HTTP handler for creating a user
@@ -24,6 +25,7 @@ func createUserHandler(w http.ResponseWriter, r *http.Request) {
         Email     string `json:"email"`
         Password  string `json:"password"`
         Phone     string `json:"phone"`
+        isAdmin   bool `json:"isAdmin"`
     }
 
     err := json.NewDecoder(r.Body).Decode(&reqData)
@@ -33,7 +35,7 @@ func createUserHandler(w http.ResponseWriter, r *http.Request) {
     }
 
     // Create user and handle potential errors
-    err = createUser(reqData.FirstName, reqData.LastName, reqData.Email, reqData.Password, reqData.Phone)
+    err = createUser(reqData.FirstName, reqData.LastName, reqData.Email, reqData.Password, reqData.Phone, reqData.isAdmin)
     if err != nil {
         http.Error(w, err.Error(), http.StatusConflict) // Return the specific error message
         return

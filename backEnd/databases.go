@@ -26,7 +26,7 @@ func initDB() {
 }
 
 // CreateUser inserts a new user into the database
-func createUser(firstName, lastName, email, password, phone string) error {
+func createUser(firstName, lastName, email, password, phone string, isAdmin bool) error {
     // Check if the email already exists
     existingUser, err := getUserByEmail(email)
     if err != nil {
@@ -43,8 +43,8 @@ func createUser(firstName, lastName, email, password, phone string) error {
     }
 
     // Insert the new user with the hashed password
-    query := `INSERT INTO users (firstName, lastName, email, password, phone) VALUES ($1, $2, $3, $4, $5)`
-    _, err = db.Exec(query, firstName, lastName, email, hashedPassword, phone)
+    query := `INSERT INTO users (firstName, lastName, email, password, phone, isAdmin ) VALUES ($1, $2, $3, $4, $5, $6)`
+    _, err = db.Exec(query, firstName, lastName, email, hashedPassword, phone, isAdmin)
     if err != nil {
         log.Printf("Error inserting user into database: %v", err)
         return err
@@ -57,9 +57,9 @@ func createUser(firstName, lastName, email, password, phone string) error {
 // GetUserByEmail retrieves a user by email
 func getUserByEmail(email string) (*User, error) {
     var user User
-    // Update the query to select firstName and lastName in addition to id, email, and password
-    err := db.QueryRow("SELECT id, firstName, lastName, email, password FROM users WHERE email=$1", email).
-        Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.Password)
+    // Update the query to select firstName, lastName, email, password, and isAdmin
+    err := db.QueryRow("SELECT id, firstName, lastName, email, password, isAdmin FROM users WHERE email=$1", email).
+        Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.Password, &user.IsAdmin)
     
     if err != nil {
         if err == sql.ErrNoRows {
@@ -69,3 +69,4 @@ func getUserByEmail(email string) (*User, error) {
     }
     return &user, nil
 }
+

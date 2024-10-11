@@ -9,9 +9,7 @@ const root = createRoot(container); // React 18 uses createRoot
 root.render(
   <React.StrictMode>
     <MyContextProvider>
-      <BrowserRouter>
         <App />
-      </BrowserRouter>
     </MyContextProvider>
   </React.StrictMode>
 );
