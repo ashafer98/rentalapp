@@ -4,6 +4,7 @@ package main
 import (
     "encoding/json"
     "net/http"
+    "log"
 )
 
 // Struct for handling incoming form data from the React app
@@ -13,29 +14,26 @@ type ApplicantData struct {
     Email     string `json:"email"`
     Password  string `json:"password"`
     Phone     string `json:"phone"`
-    IsAdmin   bool `json:"isAdmin"`
+    IsAdmin   bool   `json:"isAdmin"`
 }
 
 // HTTP handler for creating a user
 func createUserHandler(w http.ResponseWriter, r *http.Request) {
     // Parse request data, assuming it's coming as JSON
-    var reqData struct {
-        FirstName string `json:"firstName"`
-        LastName  string `json:"lastName"`
-        Email     string `json:"email"`
-        Password  string `json:"password"`
-        Phone     string `json:"phone"`
-        isAdmin   bool `json:"isAdmin"`
-    }
+    var reqData ApplicantData
 
+    // Log the incoming request body to check if isAdmin is received as expected
     err := json.NewDecoder(r.Body).Decode(&reqData)
     if err != nil {
         http.Error(w, "Invalid request payload", http.StatusBadRequest)
         return
     }
 
+    // Log the request data to see what is being received
+    log.Printf("Received request: %+v", reqData)
+
     // Create user and handle potential errors
-    err = createUser(reqData.FirstName, reqData.LastName, reqData.Email, reqData.Password, reqData.Phone, reqData.isAdmin)
+    err = createUser(reqData.FirstName, reqData.LastName, reqData.Email, reqData.Password, reqData.Phone, reqData.IsAdmin)
     if err != nil {
         http.Error(w, err.Error(), http.StatusConflict) // Return the specific error message
         return
@@ -44,7 +42,6 @@ func createUserHandler(w http.ResponseWriter, r *http.Request) {
     w.WriteHeader(http.StatusCreated)
     w.Write([]byte("User created successfully"))
 }
-
 
 
 // Login Handler

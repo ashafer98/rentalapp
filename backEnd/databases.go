@@ -27,6 +27,9 @@ func initDB() {
 
 // CreateUser inserts a new user into the database
 func createUser(firstName, lastName, email, password, phone string, isAdmin bool) error {
+    // Log the data being passed to the createUser function
+    log.Printf("Creating user with data: FirstName=%s, LastName=%s, Email=%s, IsAdmin=%t", firstName, lastName, email, isAdmin)
+
     // Check if the email already exists
     existingUser, err := getUserByEmail(email)
     if err != nil {
@@ -34,7 +37,8 @@ func createUser(firstName, lastName, email, password, phone string, isAdmin bool
     }
     if existingUser != nil {
         // Return a specific error message when a duplicate email is found
-        return fmt.Errorf("User with email %s already exists", email)    }
+        return fmt.Errorf("User with email %s already exists", email)
+    }
 
     // Hash the password before saving to the database
     hashedPassword, err := hashPassword(password)
@@ -42,8 +46,11 @@ func createUser(firstName, lastName, email, password, phone string, isAdmin bool
         return err
     }
 
+    // Log the hashed password before saving
+    log.Printf("Hashed password: %s", hashedPassword)
+
     // Insert the new user with the hashed password
-    query := `INSERT INTO users (firstName, lastName, email, password, phone, isAdmin ) VALUES ($1, $2, $3, $4, $5, $6)`
+    query := `INSERT INTO users (firstName, lastName, email, password, phone, isAdmin) VALUES ($1, $2, $3, $4, $5, $6)`
     _, err = db.Exec(query, firstName, lastName, email, hashedPassword, phone, isAdmin)
     if err != nil {
         log.Printf("Error inserting user into database: %v", err)
