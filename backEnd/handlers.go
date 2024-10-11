@@ -127,11 +127,13 @@ func getUserHandler(w http.ResponseWriter, r *http.Request) {
         FirstName string `json:"firstName"`
         LastName  string `json:"lastName"`
         Email     string `json:"email"`
+        IsAdmin   bool   `json:"isAdmin"` // Use "bool" for boolean type
     }{
         ID:        user.ID,
         FirstName: user.FirstName,
         LastName:  user.LastName,
         Email:     user.Email,
+        IsAdmin:   user.IsAdmin,
     }
 
     w.Header().Set("Content-Type", "application/json")

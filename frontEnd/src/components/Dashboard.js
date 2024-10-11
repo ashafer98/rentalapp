@@ -22,6 +22,7 @@ const Dashboard = () => {
       }
 
       const data = await response.json();
+      console.log(data)
       setUser(data);  // Store user details in state
     } catch (error) {
       setError('Error fetching user details');
@@ -52,6 +53,7 @@ const Dashboard = () => {
           <p><strong>First Name:</strong> {user.firstName}</p>
           <p><strong>Last Name:</strong> {user.lastName}</p>
           <p><strong>Email:</strong> {user.email}</p>
+          <p><strong>Is Admin?:</strong> {user.isAdmin ? 'Yes' : 'No'}</p>         
         </div>
       ) : (
         <p>Loading user details...</p>
