@@ -5,5 +5,5 @@ CREATE TABLE users (
     email TEXT NOT NULL,
     password TEXT NOT NULL,
     phone TEXT NOT NULL,
-    role BOOLEAN NOT NULL,
+    isAdmin BOOLEAN NOT NULL,
 );
