@@ -54,21 +54,61 @@ const Dashboard = () => {
       <h1>Welcome to your dashboard!</h1>
       {error && <p style={styles.error}>{error}</p>}
       {user ? (
-        <div style={styles.userDetails}>
-          <h2>User Details:</h2>
-          <p>
-            <strong>First Name:</strong> {user.firstName}
-          </p>
-          <p>
-            <strong>Last Name:</strong> {user.lastName}
-          </p>
-          <p>
-            <strong>Email:</strong> {user.email}
-          </p>
-          <p>
-            <strong>Is Admin?:</strong> {user.isAdmin ? 'Yes' : 'No'}
-          </p>
-        </div>
+        <>
+          <div style={styles.userDetails}>
+            <h2>User Details:</h2>
+            <p>
+              <strong>First Name:</strong> {user.firstName}
+            </p>
+            <p>
+              <strong>Last Name:</strong> {user.lastName}
+            </p>
+            <p>
+              <strong>Email:</strong> {user.email}
+            </p>
+            <p>
+              <strong>Is Admin?:</strong> {user.isAdmin ? 'Yes' : 'No'}
+            </p>
+          </div>
+
+          {/* Background Check Section */}
+          <section style={styles.section}>
+            <h2>Background Check</h2>
+            <p>Status: {user.backgroundCheck ? 'Completed' : 'Pending'}</p>
+          </section>
+
+          {/* Lease Agreement Section */}
+          <section style={styles.section}>
+            <h2>Lease Agreement</h2>
+            {user.leaseAgreement ? (
+              <a href={user.leaseAgreement} target="_blank" rel="noopener noreferrer">
+                View Lease Agreement
+              </a>
+            ) : (
+              <p>No lease agreement available.</p>
+            )}
+          </section>
+
+          {/* Payments Section */}
+          <section style={styles.section}>
+            <h2>Payments</h2>
+            <button style={styles.paymentButton} onClick={() => alert('Payment Process Started')}>
+              Make a Payment
+            </button>
+            <h3>Payment History</h3>
+            {user.paymentHistory && user.paymentHistory.length > 0 ? (
+              <ul>
+                {user.paymentHistory.map((payment, index) => (
+                  <li key={index}>
+                    <strong>Date:</strong> {payment.date} - <strong>Amount:</strong> ${payment.amount}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No payment history available.</p>
+            )}
+          </section>
+        </>
       ) : (
         <p>No user details available.</p>
       )}
@@ -99,9 +139,25 @@ const styles = {
     marginTop: '20px',
     textAlign: 'left',
   },
+  section: {
+    marginTop: '30px',
+    padding: '15px',
+    borderRadius: '5px',
+    backgroundColor: '#f1f1f1',
+    textAlign: 'left',
+  },
   error: {
     color: 'red',
     marginBottom: '15px',
+  },
+  paymentButton: {
+    margin: '10px 0',
+    padding: '10px 20px',
+    backgroundColor: '#4CAF50',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
   },
   logoutButton: {
     marginTop: '20px',
