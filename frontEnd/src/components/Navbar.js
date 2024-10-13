@@ -1,50 +1,88 @@
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom'; // Use Link and useNavigate for navigation
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import './Navbar.css';
 import logo from '../photos/weebbrealestaeFullLgog.jpg';
 
 const Navbar = ({ isLoggedIn, setIsLoggedIn }) => {
+  const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const menuRef = useRef(null);
 
-  // Handle logout by clearing the token and redirecting to the homepage
   const handleLogout = () => {
     localStorage.removeItem('token');
-    setIsLoggedIn(false);  // Update the state to logged out
-    navigate('/');  // Redirect to homepage after logging out
+    setIsLoggedIn(false);
+    navigate('/');
   };
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? 'hidden' : 'auto';
+  }, [menuOpen]);
+
   return (
-    <nav className="navbar">
-      <div className="navbar-list">
-        <div className="logo">
-          <Link to="/">
-            <img src={logo} alt="Webb Real Estate Logo" className="hero-logo-nav" />
-            Webb Real Estate
-          </Link>
-        </div>
-        <ul className="nav-links">
+    <>
+      {menuOpen && <div className="backdrop" onClick={() => setMenuOpen(false)}></div>}
+      <nav className="navbar" ref={menuRef}>
+        {/* Logo on the left */}
+        <Link to="/" className="logo">
+          <img src={logo} alt="Webb Real Estate Logo" className="hero-logo-nav" />
+        </Link>
+
+        {/* Hamburger menu on the right */}
+        <button
+          className={`hamburger ${menuOpen ? 'open' : ''}`}
+          onClick={() => setMenuOpen(!menuOpen)}
+          aria-label="Toggle menu"
+          aria-expanded={menuOpen}
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+
+        {/* Slide-in menu */}
+        <ul className={`nav-links ${menuOpen ? 'show' : ''}`}>
           {isLoggedIn ? (
             <>
               <li>
-                <Link to="/dashboard">Dashboard</Link> {/* Always show home */}
+                <Link to="/dashboard" onClick={() => setMenuOpen(false)} className="nav-button">
+                  Dashboard
+                </Link>
               </li>
               <li>
-                <button onClick={handleLogout} className="logout-button">Logout</button> {/* Show logout if logged in */}
+                <button onClick={handleLogout} className="nav-button logout-button">
+                  Logout
+                </button>
               </li>
             </>
           ) : (
             <>
               <li>
-                <Link to="/login">Login</Link> {/* Show login if not logged in */}
+                <Link to="/login" onClick={() => setMenuOpen(false)} className="nav-button">
+                  Login
+                </Link>
               </li>
               <li>
-                <Link to="/register">Register</Link> {/* Show register if not logged in */}
+                <Link to="/register" onClick={() => setMenuOpen(false)} className="nav-button">
+                  Register
+                </Link>
               </li>
             </>
           )}
         </ul>
-      </div>
-    </nav>
+      </nav>
+    </>
   );
 };
 
