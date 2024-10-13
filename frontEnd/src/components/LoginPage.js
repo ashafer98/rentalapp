@@ -25,6 +25,18 @@ const LoginPage = ({ setIsLoggedIn }) => {
         const data = await response.json();
         localStorage.setItem('token', data.token);
         setIsLoggedIn(true);
+        //Now that you have valid token call API to get user details and grab isAdmin boolean from repsonse. (example of this is in Dashboard...)
+        //this is api here...http://localhost:8000/api/user
+        //example of response is this....
+//          {
+//     "id": 1,
+//     "firstName": "Anya",
+//     "lastName": "Shafer",
+//     "email": "anyashafer@gmail.com",
+//     "isAdmin": true
+// }
+        //Needs to set is admin true or false like setIsloggedinAbove...
+        //If admin ? navigate to admin dahsboard : user dashboard
         navigate('/dashboard');
       } else {
         const errorData = await response.json();
