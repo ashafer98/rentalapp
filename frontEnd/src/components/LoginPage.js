@@ -1,12 +1,41 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const LoginPage = ({ setIsLoggedIn }) => {
+const LoginPage = ({ setIsLoggedIn, setIsAdmin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+
+  const fetchUserDetails = async (token) => {
+    try {
+      const response = await fetch('http://localhost:8000/api/user', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch user details');
+      }
+
+      const userData = await response.json();
+      setIsAdmin(userData.isAdmin); // Set the admin state
+
+      // Navigate to the appropriate dashboard based on the user role
+      if (userData.isAdmin) {
+        navigate('/admin-dashboard');
+      } else {
+        navigate('/dashboard');
+      }
+    } catch (error) {
+      console.error('Error fetching user details:', error);
+      setError('Failed to retrieve user information. Please try again.');
+    }
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -23,21 +52,9 @@ const LoginPage = ({ setIsLoggedIn }) => {
 
       if (response.ok) {
         const data = await response.json();
-        localStorage.setItem('token', data.token);
-        setIsLoggedIn(true);
-        //Now that you have valid token call API to get user details and grab isAdmin boolean from repsonse. (example of this is in Dashboard...)
-        //this is api here...http://localhost:8000/api/user
-        //example of response is this....
-//          {
-//     "id": 1,
-//     "firstName": "Anya",
-//     "lastName": "Shafer",
-//     "email": "anyashafer@gmail.com",
-//     "isAdmin": true
-// }
-        //Needs to set is admin true or false like setIsloggedinAbove...
-        //If admin ? navigate to admin dahsboard : user dashboard
-        navigate('/dashboard');
+        localStorage.setItem('token', data.token); // Store the token
+        setIsLoggedIn(true); // Set login state
+        await fetchUserDetails(data.token); // Fetch user details
       } else {
         const errorData = await response.json();
         setError(errorData.message || 'Invalid credentials, please try again.');
@@ -88,7 +105,7 @@ const styles = {
   container: {
     maxWidth: '400px',
     margin: '100px auto',
-    padding: '30px', // Added padding to the container
+    padding: '30px',
     boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
     borderRadius: '8px',
     textAlign: 'center',
@@ -97,7 +114,7 @@ const styles = {
   form: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '20px', // Adds space between input fields
+    gap: '20px',
   },
   inputGroup: {
     display: 'flex',
@@ -107,11 +124,11 @@ const styles = {
   },
   input: {
     width: '100%',
-    padding: '12px', // Added padding inside the input
+    padding: '12px',
     marginTop: '5px',
     borderRadius: '6px',
     border: '1px solid #ccc',
-    boxSizing: 'border-box', // Prevents overflow
+    boxSizing: 'border-box',
   },
   button: {
     padding: '12px',

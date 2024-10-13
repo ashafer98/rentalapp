@@ -1,28 +1,43 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import LoginPage from './components/LoginPage';
-import Dashboard from './components/Dashboard';
-import './App.css';
+import AdminDashboard from './components/Dashboards/AdminDashboard';
+import UserDashboard from './components/Dashboards/UserDashboard';
 import Home from './components/Home';
 import Register from './components/Register';
+import './App.css';
 
 const App = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token')); // Check if token is already in localStorage
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
+  const [isAdmin, setIsAdmin] = useState(false); // Track if user is an admin
 
   return (
     <Router>
       <div className="App">
-        {/* Pass isLoggedIn and setIsLoggedIn to Navbar */}
         <Navbar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/register" element={<Register />} />
           <Route
             path="/login"
-            element={<LoginPage setIsLoggedIn={setIsLoggedIn} />}  // Pass setIsLoggedIn to LoginPage
+            element={
+              <LoginPage
+                setIsLoggedIn={setIsLoggedIn}
+                setIsAdmin={setIsAdmin}
+              />
+            }
           />
-          <Route path="/dashboard" element={<Dashboard />} />
+
+          {/* Conditional routing to dashboards based on admin status */}
+          <Route
+            path="/dashboard"
+            element={
+              isAdmin ? <Navigate to="/admin-dashboard" /> : <UserDashboard />
+            }
+          />
+          <Route path="/admin-dashboard" element={<AdminDashboard />} />
         </Routes>
       </div>
     </Router>
