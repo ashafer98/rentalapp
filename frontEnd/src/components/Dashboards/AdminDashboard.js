@@ -1,28 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
-// Mock data to simulate API responses
-const mockAdmin = {
-  firstName: 'Admin',
-  lastName: 'User',
-  email: 'admin@example.com',
-};
-
+// Mock Data
+const mockAdmin = { firstName: 'Admin', lastName: 'User', email: 'admin@example.com' };
 const mockApplications = [
   { firstName: 'John', lastName: 'Doe', email: 'john@example.com', status: 'Pending' },
   { firstName: 'Jane', lastName: 'Smith', email: 'jane@example.com', status: 'Approved' },
 ];
-
 const mockProperties = [
-  { name: 'Sunset Villas', location: 'California', price: 1200 },
-  { name: 'Palm Apartments', location: 'Florida', price: 900 },
+  { id: 1, name: 'Sunset Villas', location: 'California', price: 1200 },
+  { id: 2, name: 'Palm Apartments', location: 'Florida', price: 900 },
 ];
-
 const mockTenants = [
   { firstName: 'Alice', lastName: 'Johnson', email: 'alice@example.com' },
   { firstName: 'Bob', lastName: 'Williams', email: 'bob@example.com' },
 ];
-
 const mockMaintenanceRequests = [
   { description: 'Leaking faucet in kitchen', status: 'In Progress' },
   { description: 'Broken AC unit', status: 'Pending' },
@@ -38,7 +30,7 @@ const AdminDashboard = () => {
   const [newProperty, setNewProperty] = useState({ name: '', location: '', price: '' });
 
   useEffect(() => {
-    // Simulate API calls using mock data
+    // Load mock data on component mount
     setAdmin(mockAdmin);
     setApplications(mockApplications);
     setProperties(mockProperties);
@@ -48,9 +40,10 @@ const AdminDashboard = () => {
 
   const handleAddProperty = (e) => {
     e.preventDefault();
-    const addedProperty = { ...newProperty };
-    setProperties([...properties, addedProperty]); // Add to mock properties
-    setNewProperty({ name: '', location: '', price: '' }); // Reset form
+    const newId = properties.length ? properties[properties.length - 1].id + 1 : 1;
+    const addedProperty = { id: newId, ...newProperty };
+    setProperties([...properties, addedProperty]);
+    setNewProperty({ name: '', location: '', price: '' });
   };
 
   return (
@@ -98,8 +91,12 @@ const AdminDashboard = () => {
       <section style={styles.section}>
         <h2>Current Properties</h2>
         <ul>
-          {properties.map((property, index) => (
-            <li key={index}>{property.name} - {property.location} - ${property.price}</li>
+          {properties.map(property => (
+            <li key={property.id}>
+              <Link to={`/property/${property.id}`} style={styles.link}>
+                {property.name} - {property.location} - ${property.price}
+              </Link>
+            </li>
           ))}
         </ul>
       </section>
@@ -181,6 +178,11 @@ const styles = {
     border: 'none',
     cursor: 'pointer',
   },
+  link: {
+    textDecoration: 'none',
+    color: '#4CAF50',
+    fontWeight: 'bold',
+  },
   table: {
     width: '100%',
     borderCollapse: 'collapse',
@@ -189,7 +191,7 @@ const styles = {
   logoutButton: {
     marginTop: '20px',
     backgroundColor: '#d9534f',
-    color: '#fff',
+    color: 'white',
     padding: '10px 20px',
     border: 'none',
     cursor: 'pointer',
