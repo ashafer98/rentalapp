@@ -7,16 +7,21 @@ import UserDashboard from './components/Dashboards/UserDashboard';
 import Home from './components/Home';
 import Register from './components/Register';
 import PropertyPage from './components/PropertyPage';
+import ViewTenant from './components/ViewTenant';
 import './App.css';
-
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
   const [isAdmin, setIsAdmin] = useState(false); // Track if user is an admin
 
   const PropertyPageWrapper = () => {
-    const { id } = useParams(); // Extract the ID from the URL
-    return <PropertyPage id={id} />; // Pass ID as a prop
+    const { id } = useParams(); // Extract the property ID from the URL
+    return <PropertyPage id={id} />; // Pass ID as a prop to PropertyPage
+  };
+
+  const ViewTenantWrapper = () => {
+    const { id } = useParams(); // Extract the tenant ID from the URL
+    return <ViewTenant id={id} />; // Pass tenant ID as a prop to ViewTenant
   };
 
   return (
@@ -30,14 +35,11 @@ const App = () => {
           <Route
             path="/login"
             element={
-              <LoginPage
-                setIsLoggedIn={setIsLoggedIn}
-                setIsAdmin={setIsAdmin}
-              />
+              <LoginPage setIsLoggedIn={setIsLoggedIn} setIsAdmin={setIsAdmin} />
             }
           />
 
-          {/* Conditional routing to dashboards based on admin status */}
+          {/* Conditional routing based on admin status */}
           <Route
             path="/dashboard"
             element={
@@ -45,14 +47,12 @@ const App = () => {
             }
           />
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
-          <Route path="/property/:id" element={<PropertyPageWrapper />} /> {/* Pass prop */}
+          <Route path="/property/:id" element={<PropertyPageWrapper />} /> {/* Property route */}
+          <Route path="/tenant/:id" element={<ViewTenantWrapper />} /> {/* Tenant route */}
         </Routes>
       </div>
     </Router>
   );
 };
-
-
-
 
 export default App;
