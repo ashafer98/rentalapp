@@ -8,6 +8,7 @@ import Home from './components/Home';
 import Register from './components/Register';
 import PropertyPage from './components/PropertyPage';
 import ViewTenant from './components/ViewTenant';
+import AddProperty from './components/AddProperty';
 import './App.css';
 
 const App = () => {
@@ -49,6 +50,7 @@ const App = () => {
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
           <Route path="/property/:id" element={<PropertyPageWrapper />} /> {/* Property route */}
           <Route path="/tenant/:id" element={<ViewTenantWrapper />} /> {/* Tenant route */}
+          <Route path="/add-property" element={<AddProperty />} />
         </Routes>
       </div>
     </Router>

@@ -1,49 +1,49 @@
+// /components/AdminDashboard.js
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 
 // Mock Data
-const mockAdmin = { firstName: 'Admin', lastName: 'User', email: 'admin@example.com' };
-const mockApplications = [
-  { firstName: 'John', lastName: 'Doe', email: 'john@example.com', status: 'Pending' },
-  { firstName: 'Jane', lastName: 'Smith', email: 'jane@example.com', status: 'Approved' },
-];
 const mockProperties = [
-  { id: 1, name: 'Sunset Villas', location: 'California', price: 1200 },
-  { id: 2, name: 'Palm Apartments', location: 'Florida', price: 900 },
+  { id: 1, name: 'Sunset Villas', location: 'California', price: 1200, rooms: 3, tenants: 2 },
+  { id: 2, name: 'Palm Apartments', location: 'Florida', price: 900, rooms: 2, tenants: 1 },
+  { id: 3, name: 'Ocean Breeze', location: 'Hawaii', price: 1500, rooms: 4, tenants: 3 },
 ];
-const mockTenants = [
-  { firstName: 'Alice', lastName: 'Johnson', email: 'alice@example.com' },
-  { firstName: 'Bob', lastName: 'Williams', email: 'bob@example.com' },
+
+const mockApplications = [
+  { 
+    firstName: 'John', lastName: 'Doe', email: 'john@example.com', 
+    status: 'Pending', location: 'Palm Apartments', room: 'Room 2' 
+  },
+  { 
+    firstName: 'Jane', lastName: 'Smith', email: 'jane@example.com', 
+    status: 'Approved', location: 'Sunset Villas', room: 'Room 1' 
+  },
 ];
+
 const mockMaintenanceRequests = [
-  { description: 'Leaking faucet in kitchen', status: 'In Progress' },
-  { description: 'Broken AC unit', status: 'Pending' },
+  { description: 'Leaking faucet in kitchen', status: 'In Progress', location: 'Palm Apartments' },
+  { description: 'Broken AC unit', status: 'Pending', location: 'Sunset Villas' },
 ];
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const [admin, setAdmin] = useState(null);
-  const [applications, setApplications] = useState([]);
-  const [properties, setProperties] = useState([]);
-  const [tenants, setTenants] = useState([]);
-  const [maintenanceRequests, setMaintenanceRequests] = useState([]);
-  const [newProperty, setNewProperty] = useState({ name: '', location: '', price: '' });
+  const [properties, setProperties] = useState(mockProperties);
+  const [sortConfig, setSortConfig] = useState({ key: '', direction: 'ascending' });
 
-  useEffect(() => {
-    // Load mock data on component mount
-    setAdmin(mockAdmin);
-    setApplications(mockApplications);
-    setProperties(mockProperties);
-    setTenants(mockTenants);
-    setMaintenanceRequests(mockMaintenanceRequests);
-  }, []);
+  const sortProperties = (key) => {
+    let direction = 'ascending';
+    if (sortConfig.key === key && sortConfig.direction === 'ascending') {
+      direction = 'descending';
+    }
 
-  const handleAddProperty = (e) => {
-    e.preventDefault();
-    const newId = properties.length ? properties[properties.length - 1].id + 1 : 1;
-    const addedProperty = { id: newId, ...newProperty };
-    setProperties([...properties, addedProperty]);
-    setNewProperty({ name: '', location: '', price: '' });
+    const sortedProperties = [...properties].sort((a, b) => {
+      if (a[key] < b[key]) return direction === 'ascending' ? -1 : 1;
+      if (a[key] > b[key]) return direction === 'ascending' ? 1 : -1;
+      return 0;
+    });
+
+    setProperties(sortedProperties);
+    setSortConfig({ key, direction });
   };
 
   return (
@@ -53,53 +53,56 @@ const AdminDashboard = () => {
       <section style={styles.section}>
         <h2>Overview</h2>
         <p>Total Properties: {properties.length}</p>
-        <p>Total Tenants: {tenants.length}</p>
-        <p>Pending Applications: {applications.filter(app => app.status === 'Pending').length}</p>
-      </section>
-
-      <section style={styles.section}>
-        <h2>Add New Property</h2>
-        <form onSubmit={handleAddProperty} style={styles.form}>
-          <input
-            type="text"
-            placeholder="Property Name"
-            value={newProperty.name}
-            onChange={(e) => setNewProperty({ ...newProperty, name: e.target.value })}
-            required
-            style={styles.input}
-          />
-          <input
-            type="text"
-            placeholder="Location"
-            value={newProperty.location}
-            onChange={(e) => setNewProperty({ ...newProperty, location: e.target.value })}
-            required
-            style={styles.input}
-          />
-          <input
-            type="number"
-            placeholder="Price"
-            value={newProperty.price}
-            onChange={(e) => setNewProperty({ ...newProperty, price: e.target.value })}
-            required
-            style={styles.input}
-          />
-          <button type="submit" style={styles.button}>Add Property</button>
-        </form>
+        <p>Pending Applications: {mockApplications.filter((app) => app.status === 'Pending').length}</p>
       </section>
 
       <section style={styles.section}>
         <h2>Current Properties</h2>
-        <ul>
-          {properties.map(property => (
-            <li key={property.id}>
-              <Link to={`/property/${property.id}`} style={styles.link}>
-                {property.name} - {property.location} - ${property.price}
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <table style={styles.table}>
+          <thead>
+            <tr>
+              <th onClick={() => sortProperties('name')} style={styles.sortableHeader}>
+                Name {sortConfig.key === 'name' ? (sortConfig.direction === 'ascending' ? '▲' : '▼') : ''}
+              </th>
+              <th onClick={() => sortProperties('type')} style={styles.sortableHeader}>
+                Type {sortConfig.key === 'type' ? (sortConfig.direction === 'ascending' ? '▲' : '▼') : ''}
+              </th>
+              <th onClick={() => sortProperties('location')} style={styles.sortableHeader}>
+                Location {sortConfig.key === 'location' ? (sortConfig.direction === 'ascending' ? '▲' : '▼') : ''}
+              </th>
+              <th onClick={() => sortProperties('rooms')} style={styles.sortableHeader}>
+                # of Rooms {sortConfig.key === 'rooms' ? (sortConfig.direction === 'ascending' ? '▲' : '▼') : ''}
+              </th>
+              <th onClick={() => sortProperties('tenants')} style={styles.sortableHeader}>
+                # of Tenants {sortConfig.key === 'tenants' ? (sortConfig.direction === 'ascending' ? '▲' : '▼') : ''}
+              </th>
+              <th onClick={() => sortProperties('price')} style={styles.sortableHeader}>
+                Price {sortConfig.key === 'price' ? (sortConfig.direction === 'ascending' ? '▲' : '▼') : ''}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {properties.map((property) => (
+              <tr key={property.id}>
+                <td>
+                  <Link to={`/property/${property.id}`} style={styles.link}>
+                    {property.name}
+                  </Link>
+                </td>
+                <td>{property.type}</td>
+                <td>{property.location}</td>
+                <td>{property.rooms}</td>
+                <td>{property.tenants}</td>
+                <td>${property.price}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </section>
+
+      <button onClick={() => navigate('/add-property')} style={styles.addButton}>
+        Add New Property
+      </button>
 
       <section style={styles.section}>
         <h2>Applications</h2>
@@ -109,14 +112,18 @@ const AdminDashboard = () => {
               <th>Name</th>
               <th>Email</th>
               <th>Status</th>
+              <th>Location</th>
+              <th>Room #</th>
             </tr>
           </thead>
           <tbody>
-            {applications.map((app, index) => (
+            {mockApplications.map((app, index) => (
               <tr key={index}>
                 <td>{app.firstName} {app.lastName}</td>
                 <td>{app.email}</td>
                 <td>{app.status}</td>
+                <td>{app.location}</td>
+                <td>{app.room}</td>
               </tr>
             ))}
           </tbody>
@@ -125,11 +132,24 @@ const AdminDashboard = () => {
 
       <section style={styles.section}>
         <h2>Maintenance Requests</h2>
-        <ul>
-          {maintenanceRequests.map((req, index) => (
-            <li key={index}>{req.description} - {req.status}</li>
-          ))}
-        </ul>
+        <table style={styles.table}>
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th>Status</th>
+              <th>Location</th>
+            </tr>
+          </thead>
+          <tbody>
+            {mockMaintenanceRequests.map((req, index) => (
+              <tr key={index}>
+                <td>{req.description}</td>
+                <td>{req.status}</td>
+                <td>{req.location}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </section>
 
       <button
@@ -161,22 +181,14 @@ const styles = {
     borderRadius: '5px',
     backgroundColor: '#f1f1f1',
   },
-  form: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '10px',
-  },
-  input: {
-    padding: '10px',
-    borderRadius: '5px',
-    border: '1px solid #ccc',
-  },
-  button: {
+  addButton: {
+    marginTop: '20px',
     padding: '10px',
     backgroundColor: '#4CAF50',
     color: '#fff',
     border: 'none',
     cursor: 'pointer',
+    borderRadius: '5px',
   },
   link: {
     textDecoration: 'none',
