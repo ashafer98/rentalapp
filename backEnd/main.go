@@ -19,6 +19,14 @@ func main() {
     r.HandleFunc("/api/login", loginHandler).Methods("POST")
     r.HandleFunc("/api/reset-password", resetPasswordHandler).Methods("POST")
     r.HandleFunc("/api/user", getUserHandler).Methods("GET") // New route for getting user details
+
+    //Property API's
+    r.HandleFunc("/properties", createProperty).Methods("POST")
+    r.HandleFunc("/properties", getProperties).Methods("GET")
+    r.HandleFunc("/properties/{id}", deleteProperty).Methods("DELETE")
+    r.HandleFunc("/properties/{id}", updateProperty).Methods("PATCH")
+    r.HandleFunc("/properties/{id}", getPropertyByID).Methods("GET")
+
     // Set up CORS middleware
     c := cors.New(cors.Options{
         AllowedOrigins:   []string{"http://localhost:3000"}, // Allow your frontend URL

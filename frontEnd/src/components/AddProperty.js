@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const AddProperty = ({ addProperty }) => {
+const AddProperty = () => {
   const [property, setProperty] = useState({
     name: '',
     type: '',
@@ -27,7 +27,6 @@ const AddProperty = ({ addProperty }) => {
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
 
-    // Generate previews and update state
     const newPreviews = files.map((file) => ({
       file,
       url: URL.createObjectURL(file),
@@ -41,19 +40,47 @@ const AddProperty = ({ addProperty }) => {
   };
 
   const removeImage = (indexToRemove) => {
-    setImagePreviews((prev) =>
-      prev.filter((_, index) => index !== indexToRemove)
-    );
+    setImagePreviews((prev) => prev.filter((_, index) => index !== indexToRemove));
     setProperty((prev) => ({
       ...prev,
       images: prev.images.filter((_, index) => index !== indexToRemove),
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    addProperty(property); // Pass new property data to dashboard
-    navigate('/admin-dashboard'); // Redirect to dashboard
+
+    const formData = new FormData();
+    formData.append('name', property.name);
+    formData.append('type', property.type);
+    formData.append('address', property.address);
+    formData.append('city', property.city);
+    formData.append('state', property.state);
+    formData.append('zip', property.zip);
+    formData.append('rent', property.rent);
+    formData.append('deposit', property.deposit);
+    formData.append('description', property.description);
+
+    // Append images to FormData
+    property.images.forEach((image) => formData.append('images', image));
+
+    try {
+      const response = await fetch('http://localhost:8000/properties', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        alert('Property added successfully!');
+        navigate('/admin-dashboard'); // Redirect to dashboard
+      } else {
+        const errorData = await response.json();
+        alert(`Error: ${errorData.message || 'Failed to add property'}`);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('An error occurred. Please try again.');
+    }
   };
 
   return (
@@ -61,18 +88,28 @@ const AddProperty = ({ addProperty }) => {
       <form onSubmit={handleSubmit} style={styles.form}>
         <h2>Add New Property</h2>
 
-        <div style={styles.formGroup}>
-          <label style={styles.label}>Property Name</label>
-          <input
-            type="text"
-            name="name"
-            placeholder="Enter property name"
-            value={property.name}
-            onChange={handleChange}
-            required
-            style={styles.input}
-          />
-        </div>
+        {[
+          { label: 'Property Name', name: 'name', type: 'text', placeholder: 'Enter property name' },
+          { label: 'Address', name: 'address', type: 'text', placeholder: 'Enter street address' },
+          { label: 'City', name: 'city', type: 'text', placeholder: 'Enter city' },
+          { label: 'State', name: 'state', type: 'text', placeholder: 'Enter state' },
+          { label: 'ZIP Code', name: 'zip', type: 'text', placeholder: 'Enter ZIP code' },
+          { label: 'Monthly Rent', name: 'rent', type: 'number', placeholder: 'Enter monthly rent' },
+          { label: 'Security Deposit', name: 'deposit', type: 'number', placeholder: 'Enter security deposit' },
+        ].map((field, index) => (
+          <div style={styles.formGroup} key={index}>
+            <label style={styles.label}>{field.label}</label>
+            <input
+              type={field.type}
+              name={field.name}
+              placeholder={field.placeholder}
+              value={property[field.name]}
+              onChange={handleChange}
+              required
+              style={styles.input}
+            />
+          </div>
+        ))}
 
         <div style={styles.formGroup}>
           <label style={styles.label}>Property Type</label>
@@ -89,84 +126,6 @@ const AddProperty = ({ addProperty }) => {
             <option value="Villa">Villa</option>
             <option value="Studio">Studio</option>
           </select>
-        </div>
-
-        <div style={styles.formGroup}>
-          <label style={styles.label}>Address</label>
-          <input
-            type="text"
-            name="address"
-            placeholder="Enter street address"
-            value={property.address}
-            onChange={handleChange}
-            required
-            style={styles.input}
-          />
-        </div>
-
-        <div style={styles.formGroup}>
-          <label style={styles.label}>City</label>
-          <input
-            type="text"
-            name="city"
-            placeholder="Enter city"
-            value={property.city}
-            onChange={handleChange}
-            required
-            style={styles.input}
-          />
-        </div>
-
-        <div style={styles.formGroup}>
-          <label style={styles.label}>State</label>
-          <input
-            type="text"
-            name="state"
-            placeholder="Enter state"
-            value={property.state}
-            onChange={handleChange}
-            required
-            style={styles.input}
-          />
-        </div>
-
-        <div style={styles.formGroup}>
-          <label style={styles.label}>ZIP Code</label>
-          <input
-            type="text"
-            name="zip"
-            placeholder="Enter ZIP code"
-            value={property.zip}
-            onChange={handleChange}
-            required
-            style={styles.input}
-          />
-        </div>
-
-        <div style={styles.formGroup}>
-          <label style={styles.label}>Monthly Rent</label>
-          <input
-            type="number"
-            name="rent"
-            placeholder="Enter monthly rent"
-            value={property.rent}
-            onChange={handleChange}
-            required
-            style={styles.input}
-          />
-        </div>
-
-        <div style={styles.formGroup}>
-          <label style={styles.label}>Security Deposit</label>
-          <input
-            type="number"
-            name="deposit"
-            placeholder="Enter security deposit"
-            value={property.deposit}
-            onChange={handleChange}
-            required
-            style={styles.input}
-          />
         </div>
 
         <div style={styles.formGroup}>
@@ -195,11 +154,7 @@ const AddProperty = ({ addProperty }) => {
         <div style={styles.imagePreviewContainer}>
           {imagePreviews.map((preview, index) => (
             <div key={index} style={styles.imagePreview}>
-              <img
-                src={preview.url}
-                alt={`Preview ${index}`}
-                style={styles.previewImage}
-              />
+              <img src={preview.url} alt={`Preview ${index}`} style={styles.previewImage} />
               <button
                 type="button"
                 onClick={() => removeImage(index)}

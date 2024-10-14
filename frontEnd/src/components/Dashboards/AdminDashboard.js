@@ -2,21 +2,22 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 
-// Mock Data
-const mockProperties = [
-  { id: 1, name: 'Sunset Villas', location: 'California', price: 1200, rooms: 3, tenants: 2 },
-  { id: 2, name: 'Palm Apartments', location: 'Florida', price: 900, rooms: 2, tenants: 1 },
-  { id: 3, name: 'Ocean Breeze', location: 'Hawaii', price: 1500, rooms: 4, tenants: 3 },
-];
-
 const mockApplications = [
-  { 
-    firstName: 'John', lastName: 'Doe', email: 'john@example.com', 
-    status: 'Pending', location: 'Palm Apartments', room: 'Room 2' 
+  {
+    firstName: 'John',
+    lastName: 'Doe',
+    email: 'john@example.com',
+    status: 'Pending',
+    location: 'Palm Apartments',
+    room: 'Room 2',
   },
-  { 
-    firstName: 'Jane', lastName: 'Smith', email: 'jane@example.com', 
-    status: 'Approved', location: 'Sunset Villas', room: 'Room 1' 
+  {
+    firstName: 'Jane',
+    lastName: 'Smith',
+    email: 'jane@example.com',
+    status: 'Approved',
+    location: 'Sunset Villas',
+    room: 'Room 1',
   },
 ];
 
@@ -27,8 +28,29 @@ const mockMaintenanceRequests = [
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const [properties, setProperties] = useState(mockProperties);
+  const [properties, setProperties] = useState(null); // Initially null to differentiate loading state
   const [sortConfig, setSortConfig] = useState({ key: '', direction: 'ascending' });
+
+  // Fetch properties from API
+  useEffect(() => {
+    const fetchProperties = async () => {
+      try {
+        const response = await fetch('http://localhost:8000/properties');
+        if (response.ok) {
+          const data = await response.json();
+          setProperties(data.length > 0 ? data : []); // Handle empty arrays gracefully
+        } else {
+          console.error('Failed to fetch properties');
+          setProperties([]); // Ensure properties is an array even on failure
+        }
+      } catch (error) {
+        console.error('Error fetching properties:', error);
+        setProperties([]); // Handle fetch errors gracefully
+      }
+    };
+
+    fetchProperties();
+  }, []);
 
   const sortProperties = (key) => {
     let direction = 'ascending';
@@ -46,6 +68,10 @@ const AdminDashboard = () => {
     setSortConfig({ key, direction });
   };
 
+  if (properties === null) {
+    return <p>Loading properties...</p>; // Show loading state
+  }
+
   return (
     <div style={styles.container}>
       <h1>Admin Dashboard</h1>
@@ -58,46 +84,38 @@ const AdminDashboard = () => {
 
       <section style={styles.section}>
         <h2>Current Properties</h2>
-        <table style={styles.table}>
-          <thead>
-            <tr>
-              <th onClick={() => sortProperties('name')} style={styles.sortableHeader}>
-                Name {sortConfig.key === 'name' ? (sortConfig.direction === 'ascending' ? '▲' : '▼') : ''}
-              </th>
-              <th onClick={() => sortProperties('type')} style={styles.sortableHeader}>
-                Type {sortConfig.key === 'type' ? (sortConfig.direction === 'ascending' ? '▲' : '▼') : ''}
-              </th>
-              <th onClick={() => sortProperties('location')} style={styles.sortableHeader}>
-                Location {sortConfig.key === 'location' ? (sortConfig.direction === 'ascending' ? '▲' : '▼') : ''}
-              </th>
-              <th onClick={() => sortProperties('rooms')} style={styles.sortableHeader}>
-                # of Rooms {sortConfig.key === 'rooms' ? (sortConfig.direction === 'ascending' ? '▲' : '▼') : ''}
-              </th>
-              <th onClick={() => sortProperties('tenants')} style={styles.sortableHeader}>
-                # of Tenants {sortConfig.key === 'tenants' ? (sortConfig.direction === 'ascending' ? '▲' : '▼') : ''}
-              </th>
-              <th onClick={() => sortProperties('price')} style={styles.sortableHeader}>
-                Price {sortConfig.key === 'price' ? (sortConfig.direction === 'ascending' ? '▲' : '▼') : ''}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {properties.map((property) => (
-              <tr key={property.id}>
-                <td>
-                  <Link to={`/property/${property.id}`} style={styles.link}>
-                    {property.name}
-                  </Link>
-                </td>
-                <td>{property.type}</td>
-                <td>{property.location}</td>
-                <td>{property.rooms}</td>
-                <td>{property.tenants}</td>
-                <td>${property.price}</td>
+        {properties.length === 0 ? (
+          <p>No properties available.</p> // Gracefully handle empty state
+        ) : (
+          <table style={styles.table}>
+            <thead>
+              <tr>
+                <th onClick={() => sortProperties('name')} style={styles.sortableHeader}>
+                  Name {sortConfig.key === 'name' ? (sortConfig.direction === 'ascending' ? '▲' : '▼') : ''}
+                </th>
+                <th onClick={() => sortProperties('city')} style={styles.sortableHeader}>
+                  City {sortConfig.key === 'city' ? (sortConfig.direction === 'ascending' ? '▲' : '▼') : ''}
+                </th>
+                <th onClick={() => sortProperties('state')} style={styles.sortableHeader}>
+                  State {sortConfig.key === 'state' ? (sortConfig.direction === 'ascending' ? '▲' : '▼') : ''}
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {properties.map((property) => (
+                <tr key={property.id}>
+                  <td>
+                    <Link to={`/property/${property.id}`} style={styles.link}>
+                      {property.name}
+                    </Link>
+                  </td>
+                  <td>{property.city}</td>
+                  <td>{property.state}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </section>
 
       <button onClick={() => navigate('/add-property')} style={styles.addButton}>
@@ -200,6 +218,11 @@ const styles = {
     borderCollapse: 'collapse',
     marginTop: '10px',
   },
+  sortableHeader: {
+    cursor: 'pointer',
+    textAlign: 'left',
+    padding: '10px',
+  },
   logoutButton: {
     marginTop: '20px',
     backgroundColor: '#d9534f',
@@ -207,6 +230,7 @@ const styles = {
     padding: '10px 20px',
     border: 'none',
     cursor: 'pointer',
+    borderRadius: '5px',
   },
 };
 
