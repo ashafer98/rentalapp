@@ -1,29 +1,44 @@
-// /components/PropertyPage.js
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 
-const mockTenants = [
-  { id: 1, name: 'John Doe', email: 'john@example.com', roomNumber: '101', rent: 1200, dueDate: '15th of every month' },
-  { id: 2, name: 'Jane Smith', email: 'jane@example.com', roomNumber: '102', rent: 1100, dueDate: '1st of every month' },
-];
-
 const PropertyPage = () => {
-  const { id } = useParams();
+  const { id } = useParams(); // Property ID from the route
   const navigate = useNavigate();
   const [property, setProperty] = useState(null);
+  const [rooms, setRooms] = useState([]); // State to store rooms with tenant info
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({});
 
+  // Fetch property and rooms when component loads
   useEffect(() => {
-    const fetchProperty = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch(`http://localhost:8000/properties/${id}`);
-        if (!response.ok) throw new Error('Failed to fetch property data');
+        const propertyResponse = await fetch(`http://localhost:8000/properties/${id}`);
+        if (!propertyResponse.ok) throw new Error('Failed to fetch property data');
+        const propertyData = await propertyResponse.json();
 
-        const data = await response.json();
-        setProperty(data);
-        setFormData(data); // Pre-fill update form with current data
+        const roomsResponse = await fetch(`http://localhost:8000/rooms?property_id=${id}`);
+        if (!roomsResponse.ok) throw new Error('Failed to fetch rooms data');
+        const roomsData = await roomsResponse.json();
+
+        // Fetch tenant names for each room
+        const roomsWithTenantNames = await Promise.all(
+          roomsData.map(async (room) => {
+            if (room.tenant_id) {
+              const tenantResponse = await fetch(`http://localhost:8000/tenants/${room.tenant_id}`);
+              if (tenantResponse.ok) {
+                const tenantData = await tenantResponse.json();
+                return { ...room, tenant_name: tenantData.name };
+              }
+            }
+            return { ...room, tenant_name: 'No tenant assigned' };
+          })
+        );
+
+        setProperty(propertyData);
+        setRooms(roomsWithTenantNames);
+        setFormData(propertyData);
       } catch (error) {
         setError(error.message);
       } finally {
@@ -31,7 +46,7 @@ const PropertyPage = () => {
       }
     };
 
-    fetchProperty();
+    fetchData();
   }, [id]);
 
   const handleUpdate = async () => {
@@ -51,10 +66,7 @@ const PropertyPage = () => {
 
   const handleDelete = async () => {
     try {
-      const response = await fetch(`http://localhost:8000/properties/${id}`, {
-        method: 'DELETE',
-      });
-
+      const response = await fetch(`http://localhost:8000/properties/${id}`, { method: 'DELETE' });
       if (!response.ok) throw new Error('Failed to delete property');
       alert('Property deleted successfully!');
       navigate('/admin-dashboard');
@@ -70,6 +82,7 @@ const PropertyPage = () => {
 
   if (loading) return <p>Loading property details...</p>;
   if (error) return <p>Error: {error}</p>;
+  if (!property) return <p>Property not found.</p>;
 
   return (
     <div style={styles.container}>
@@ -81,29 +94,19 @@ const PropertyPage = () => {
       <p><strong>Security Deposit:</strong> ${property.deposit}</p>
       <p><strong>Description:</strong> {property.description}</p>
 
-      <h3>Images:</h3>
-      <div style={styles.imageContainer}>
-        {property.images.map((blob, index) => {
-          const imageUrl = URL.createObjectURL(new Blob([Uint8Array.from(atob(blob), c => c.charCodeAt(0))]));
-          return (
-            <div key={index} style={styles.imageWrapper}>
-              <img src={imageUrl} alt={`Property ${index}`} style={styles.image} />
-            </div>
-          );
-        })}
-      </div>
-
       <h3>Rooms and Tenants:</h3>
       <ul>
-        {mockTenants.map((tenant) => (
-          <li key={tenant.id} style={styles.roomItem}>
-            <p><strong>Room Number:</strong> {tenant.roomNumber}</p>
-            <p><strong>Tenant:</strong> {tenant.name} ({tenant.email})</p>
-            <p><strong>Rent:</strong> ${tenant.rent}</p>
-            <p><strong>Payment Due Date:</strong> {tenant.dueDate}</p>
-            <Link to={`/tenant/${tenant.id}`} style={styles.viewTenantButton}>
-              View Tenant
-            </Link>
+        {rooms.map((room) => (
+          <li key={room.id} style={styles.roomItem}>
+            <p><strong>Room Number:</strong> {room.room_number}</p>
+            <p><strong>Rent:</strong> ${room.rent}</p>
+            <p><strong>Payment Due Date:</strong> {room.due_date}</p>
+            <p><strong>Tenant:</strong> {room.tenant_name}</p>
+            {room.tenant_id && (
+              <Link to={`/tenant/${room.tenant_id}`} style={styles.viewTenantButton}>
+                View Tenant
+              </Link>
+            )}
           </li>
         ))}
       </ul>
@@ -114,7 +117,7 @@ const PropertyPage = () => {
           type="text"
           name="name"
           placeholder="Property Name"
-          value={formData.name}
+          value={formData.name || ''}
           onChange={handleChange}
           style={styles.input}
         />
@@ -122,7 +125,7 @@ const PropertyPage = () => {
           type="text"
           name="city"
           placeholder="City"
-          value={formData.city}
+          value={formData.city || ''}
           onChange={handleChange}
           style={styles.input}
         />
@@ -130,7 +133,7 @@ const PropertyPage = () => {
           type="text"
           name="state"
           placeholder="State"
-          value={formData.state}
+          value={formData.state || ''}
           onChange={handleChange}
           style={styles.input}
         />
@@ -166,15 +169,6 @@ const styles = {
     backgroundColor: '#f9f9f9',
     borderRadius: '5px',
   },
-  backButton: {
-    marginTop: '20px',
-    padding: '10px 15px',
-    backgroundColor: '#4CAF50',
-    color: 'white',
-    border: 'none',
-    borderRadius: '5px',
-    cursor: 'pointer',
-  },
   viewTenantButton: {
     marginTop: '10px',
     display: 'inline-block',
@@ -183,24 +177,6 @@ const styles = {
     color: 'white',
     textDecoration: 'none',
     borderRadius: '5px',
-  },
-  imageContainer: {
-    display: 'flex',
-    gap: '10px',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    marginTop: '10px',
-  },
-  imageWrapper: {
-    borderRadius: '8px',
-    overflow: 'hidden',
-    width: '100px',
-    height: '100px',
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-    objectFit: 'cover',
   },
   updateForm: {
     marginTop: '20px',
@@ -229,6 +205,15 @@ const styles = {
     border: 'none',
     cursor: 'pointer',
     borderRadius: '5px',
+  },
+  backButton: {
+    marginTop: '20px',
+    padding: '10px 15px',
+    backgroundColor: '#4CAF50',
+    color: 'white',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
   },
 };
 
