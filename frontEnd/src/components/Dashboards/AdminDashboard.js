@@ -28,24 +28,22 @@ const mockMaintenanceRequests = [
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const [properties, setProperties] = useState(null); // Initially null to differentiate loading state
+  const [properties, setProperties] = useState([]);
   const [sortConfig, setSortConfig] = useState({ key: '', direction: 'ascending' });
 
   // Fetch properties from API
   useEffect(() => {
     const fetchProperties = async () => {
       try {
-        const response = await fetch('http://localhost:8000/properties');
+        const response = await fetch('http://localhost:8000/properties'); // API call
         if (response.ok) {
           const data = await response.json();
-          setProperties(data.length > 0 ? data : []); // Handle empty arrays gracefully
+          setProperties(data);
         } else {
           console.error('Failed to fetch properties');
-          setProperties([]); // Ensure properties is an array even on failure
         }
       } catch (error) {
         console.error('Error fetching properties:', error);
-        setProperties([]); // Handle fetch errors gracefully
       }
     };
 
@@ -68,10 +66,6 @@ const AdminDashboard = () => {
     setSortConfig({ key, direction });
   };
 
-  if (properties === null) {
-    return <p>Loading properties...</p>; // Show loading state
-  }
-
   return (
     <div style={styles.container}>
       <h1>Admin Dashboard</h1>
@@ -84,38 +78,34 @@ const AdminDashboard = () => {
 
       <section style={styles.section}>
         <h2>Current Properties</h2>
-        {properties.length === 0 ? (
-          <p>No properties available.</p> // Gracefully handle empty state
-        ) : (
-          <table style={styles.table}>
-            <thead>
-              <tr>
-                <th onClick={() => sortProperties('name')} style={styles.sortableHeader}>
-                  Name {sortConfig.key === 'name' ? (sortConfig.direction === 'ascending' ? '▲' : '▼') : ''}
-                </th>
-                <th onClick={() => sortProperties('city')} style={styles.sortableHeader}>
-                  City {sortConfig.key === 'city' ? (sortConfig.direction === 'ascending' ? '▲' : '▼') : ''}
-                </th>
-                <th onClick={() => sortProperties('state')} style={styles.sortableHeader}>
-                  State {sortConfig.key === 'state' ? (sortConfig.direction === 'ascending' ? '▲' : '▼') : ''}
-                </th>
+        <table style={styles.table}>
+          <thead>
+            <tr>
+              <th onClick={() => sortProperties('name')} style={styles.sortableHeader}>
+                Name {sortConfig.key === 'name' ? (sortConfig.direction === 'ascending' ? '▲' : '▼') : ''}
+              </th>
+              <th onClick={() => sortProperties('city')} style={styles.sortableHeader}>
+                City {sortConfig.key === 'city' ? (sortConfig.direction === 'ascending' ? '▲' : '▼') : ''}
+              </th>
+              <th onClick={() => sortProperties('state')} style={styles.sortableHeader}>
+                State {sortConfig.key === 'state' ? (sortConfig.direction === 'ascending' ? '▲' : '▼') : ''}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {properties.map((property) => (
+              <tr key={property.id}>
+                <td>
+                  <Link to={`/property/${property.id}`} style={styles.link}>
+                    {property.name}
+                  </Link>
+                </td>
+                <td>{property.city}</td>
+                <td>{property.state}</td>
               </tr>
-            </thead>
-            <tbody>
-              {properties.map((property) => (
-                <tr key={property.id}>
-                  <td>
-                    <Link to={`/property/${property.id}`} style={styles.link}>
-                      {property.name}
-                    </Link>
-                  </td>
-                  <td>{property.city}</td>
-                  <td>{property.state}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+            ))}
+          </tbody>
+        </table>
       </section>
 
       <button onClick={() => navigate('/add-property')} style={styles.addButton}>

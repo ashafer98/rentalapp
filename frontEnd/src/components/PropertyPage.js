@@ -2,15 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 
 const PropertyPage = () => {
-  const { id } = useParams(); // Property ID from the route
+  const { id } = useParams();
   const navigate = useNavigate();
   const [property, setProperty] = useState(null);
-  const [rooms, setRooms] = useState([]); // State to store rooms with tenant info
+  const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [formData, setFormData] = useState({});
+  const [newRoom, setNewRoom] = useState({ room_number: '', rent: '', due_date: '', tenant_id: '' });
 
-  // Fetch property and rooms when component loads
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -20,9 +19,10 @@ const PropertyPage = () => {
 
         const roomsResponse = await fetch(`http://localhost:8000/rooms?property_id=${id}`);
         if (!roomsResponse.ok) throw new Error('Failed to fetch rooms data');
-        const roomsData = await roomsResponse.json();
 
-        // Fetch tenant names for each room
+        let roomsData = await roomsResponse.json();
+        roomsData = Array.isArray(roomsData) ? roomsData : [];
+
         const roomsWithTenantNames = await Promise.all(
           roomsData.map(async (room) => {
             if (room.tenant_id) {
@@ -38,7 +38,6 @@ const PropertyPage = () => {
 
         setProperty(propertyData);
         setRooms(roomsWithTenantNames);
-        setFormData(propertyData);
       } catch (error) {
         setError(error.message);
       } finally {
@@ -49,16 +48,30 @@ const PropertyPage = () => {
     fetchData();
   }, [id]);
 
-  const handleUpdate = async () => {
+  const handleRoomChange = (field, value) => {
+    setNewRoom((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleAddRoom = async () => {
     try {
-      const response = await fetch(`http://localhost:8000/properties/${id}`, {
-        method: 'PATCH',
+      const payload = {
+        room_number: newRoom.room_number,
+        rent: parseInt(newRoom.rent, 10) || 0, // Ensure rent is an integer
+        due_date: newRoom.due_date,
+        tenant_id: newRoom.tenant_id ? parseInt(newRoom.tenant_id, 10) : null, // Convert tenant_id to integer or null
+        property_id: parseInt(id, 10), // Ensure property_id is an integer
+      };
+
+      const response = await fetch(`http://localhost:8000/rooms`, {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
-      if (!response.ok) throw new Error('Failed to update property');
-      alert('Property updated successfully!');
+      if (!response.ok) throw new Error('Failed to add room');
+      alert('Room added successfully!');
+      setNewRoom({ room_number: '', rent: '', due_date: '', tenant_id: '' });
+      navigate(0); // Refresh the page
     } catch (error) {
       alert(error.message);
     }
@@ -75,146 +88,74 @@ const PropertyPage = () => {
     }
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
   if (loading) return <p>Loading property details...</p>;
   if (error) return <p>Error: {error}</p>;
   if (!property) return <p>Property not found.</p>;
 
   return (
-    <div style={styles.container}>
+    <div className="container">
       <h1>{property.name}</h1>
-      <p><strong>Type:</strong> {property.type}</p>
-      <p><strong>Location:</strong> {property.city}, {property.state}</p>
-      <p><strong>Address:</strong> {property.address}, {property.zip}</p>
-      <p><strong>Monthly Rent:</strong> ${property.rent}</p>
-      <p><strong>Security Deposit:</strong> ${property.deposit}</p>
-      <p><strong>Description:</strong> {property.description}</p>
 
       <h3>Rooms and Tenants:</h3>
-      <ul>
-        {rooms.map((room) => (
-          <li key={room.id} style={styles.roomItem}>
-            <p><strong>Room Number:</strong> {room.room_number}</p>
-            <p><strong>Rent:</strong> ${room.rent}</p>
-            <p><strong>Payment Due Date:</strong> {room.due_date}</p>
-            <p><strong>Tenant:</strong> {room.tenant_name}</p>
-            {room.tenant_id && (
-              <Link to={`/tenant/${room.tenant_id}`} style={styles.viewTenantButton}>
-                View Tenant
-              </Link>
-            )}
-          </li>
-        ))}
-      </ul>
+      <div className="room-list">
+        {rooms.length > 0 ? (
+          rooms.map((room) => (
+            <div key={room.id} className="room-card">
+              <p><strong>Room Number:</strong> {room.room_number}</p>
+              <p><strong>Rent:</strong> ${room.rent}</p>
+              <p><strong>Payment Due Date:</strong> {room.due_date}</p>
+              <p><strong>Tenant:</strong> {room.tenant_name}</p>
+              {room.tenant_id && (
+                <Link to={`/tenant/${room.tenant_id}`} className="view-tenant-button">
+                  View Tenant
+                </Link>
+              )}
+            </div>
+          ))
+        ) : (
+          <p>No rooms available for this property.</p>
+        )}
+      </div>
 
-      <h3>Update Property:</h3>
-      <div style={styles.updateForm}>
+      <h3>Add New Room:</h3>
+      <div className="add-room-form">
         <input
           type="text"
-          name="name"
-          placeholder="Property Name"
-          value={formData.name || ''}
-          onChange={handleChange}
-          style={styles.input}
+          placeholder="Room Number"
+          value={newRoom.room_number}
+          onChange={(e) => handleRoomChange('room_number', e.target.value)}
+        />
+        <input
+          type="number"
+          placeholder="Rent"
+          value={newRoom.rent}
+          onChange={(e) => handleRoomChange('rent', e.target.value)}
         />
         <input
           type="text"
-          name="city"
-          placeholder="City"
-          value={formData.city || ''}
-          onChange={handleChange}
-          style={styles.input}
+          placeholder="Due Date"
+          value={newRoom.due_date}
+          onChange={(e) => handleRoomChange('due_date', e.target.value)}
         />
         <input
-          type="text"
-          name="state"
-          placeholder="State"
-          value={formData.state || ''}
-          onChange={handleChange}
-          style={styles.input}
+          type="number"
+          placeholder="Tenant ID (Optional)"
+          value={newRoom.tenant_id}
+          onChange={(e) => handleRoomChange('tenant_id', e.target.value)}
         />
-        <button onClick={handleUpdate} style={styles.updateButton}>
-          Update Property
+        <button onClick={handleAddRoom} className="add-room-button">
+          Add Room
         </button>
       </div>
 
-      <button onClick={handleDelete} style={styles.deleteButton}>
+      <button onClick={handleDelete} className="delete-button">
         Delete Property
       </button>
-
-      <button onClick={() => navigate('/admin-dashboard')} style={styles.backButton}>
+      <button onClick={() => navigate('/admin-dashboard')} className="back-button">
         Back to Admin Dashboard
       </button>
     </div>
   );
-};
-
-const styles = {
-  container: {
-    maxWidth: '600px',
-    margin: '50px auto',
-    padding: '20px',
-    textAlign: 'center',
-    borderRadius: '8px',
-    backgroundColor: '#fff',
-    boxShadow: '0 0 15px rgba(0, 0, 0, 0.1)',
-  },
-  roomItem: {
-    marginTop: '10px',
-    padding: '10px',
-    backgroundColor: '#f9f9f9',
-    borderRadius: '5px',
-  },
-  viewTenantButton: {
-    marginTop: '10px',
-    display: 'inline-block',
-    padding: '5px 10px',
-    backgroundColor: '#007bff',
-    color: 'white',
-    textDecoration: 'none',
-    borderRadius: '5px',
-  },
-  updateForm: {
-    marginTop: '20px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '10px',
-  },
-  input: {
-    padding: '10px',
-    borderRadius: '5px',
-    border: '1px solid #ccc',
-  },
-  updateButton: {
-    padding: '10px',
-    backgroundColor: '#4CAF50',
-    color: '#fff',
-    border: 'none',
-    cursor: 'pointer',
-    borderRadius: '5px',
-  },
-  deleteButton: {
-    marginTop: '10px',
-    padding: '10px',
-    backgroundColor: '#d9534f',
-    color: '#fff',
-    border: 'none',
-    cursor: 'pointer',
-    borderRadius: '5px',
-  },
-  backButton: {
-    marginTop: '20px',
-    padding: '10px 15px',
-    backgroundColor: '#4CAF50',
-    color: 'white',
-    border: 'none',
-    borderRadius: '5px',
-    cursor: 'pointer',
-  },
 };
 
 export default PropertyPage;
