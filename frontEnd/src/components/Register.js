@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import './Register.css'; // Add this for custom CSS styling
+import React, { useState, useEffect } from 'react';
+import './Register.css';
+import { useNavigate } from 'react-router-dom';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -8,63 +9,42 @@ const Register = () => {
     email: '',
     password: '',
     phone: '',
-    isAdmin: false,  // Add isAdmin to form data
+    isAdmin: false,
   });
   const [status, setStatus] = useState('');
+  const [showLoginButton, setshowLoginButton] = useState(false);
+  const navigate = useNavigate();
 
-  // Handle input change
+  // Log the modal state when it changes
+  // useEffect(() => {
+  //   console.log("Modal state changed:", showLoginButton);
+  // }, [showLoginButton]);
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    // Handle checkbox input for isAdmin
     setFormData({
       ...formData,
       [name]: type === 'checkbox' ? checked : value,
     });
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    console.log('Submitting form data:', JSON.stringify(formData)); // Debugging log for form data
+    setStatus(''); // Clear any existing status
 
     try {
-      // Make the POST request to the registration API
       const response = await fetch('http://localhost:8000/api/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData), // Convert form data to JSON string
+        body: JSON.stringify(formData),
       });
 
-      console.log('Response status:', response.status); // Log the response status
-
-      // If response is OK (201 status code or similar)
       if (response.ok) {
-        const contentType = response.headers.get('Content-Type');
-
-        // Check if the response is JSON or plain text
-        let responseMessage;
-        if (contentType && contentType.includes('application/json')) {
-          const data = await response.json();
-          responseMessage = data.message || 'Registered successfully! Try logging in...';
-        } else {
-          responseMessage = await response.text(); // Handle plain text response
-        }
-
-        console.log('Response message:', responseMessage); // Debugging log for response data
-        setStatus(responseMessage);
-
-        // Reset the form after successful registration
-        setFormData({
-          firstName: '',
-          lastName: '',
-          email: '',
-          password: '',
-          phone: '',
-          isAdmin: false,  // Reset isAdmin to false
-        });
+        // console.log("Before setting modal:", showLoginButton); // Should log `false`
+        setshowLoginButton(true); // Show success modal
+        // console.log("After setting modal:", showLoginButton); // This will still log `false`
       } else {
         const contentType = response.headers.get('Content-Type');
         let errorMessage = 'Error submitting application.';
@@ -75,12 +55,16 @@ const Register = () => {
           errorMessage = await response.text();
         }
         setStatus(`Error: ${errorMessage}`);
-        console.error('Error message:', errorMessage); // Log the error for debugging
       }
     } catch (error) {
-      console.error('Error occurred:', error); // Log any error
       setStatus('An error occurred. Please try again later.');
+      console.error('Error occurred:', error);
     }
+  };
+
+  const handleModalClose = () => {
+    setshowLoginButton(false);
+    navigate('/login'); // Redirect to login page
   };
 
   return (
@@ -142,15 +126,20 @@ const Register = () => {
             <input
               type="checkbox"
               name="isAdmin"
-              checked={formData.isAdmin}  // Checkbox for isAdmin
+              checked={formData.isAdmin}
               onChange={handleChange}
             />
             Is Admin
           </label>
         </div>
-        <button type="submit">Submit Application</button>
+        {!showLoginButton && <button type="submit">Submit Application</button>}
       </form>
-      <p>{status}</p>
+      {status && <p className="error-message">{status}</p>}
+
+      {/* Modal */}
+      {showLoginButton && <div> <p>successfully registered please login</p> <button onClick={handleModalClose}>Login</button>
+      </div>        
+     }
     </div>
   );
 };

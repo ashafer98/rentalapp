@@ -9,11 +9,12 @@ import Register from './components/Register';
 import PropertyPage from './components/PropertyPage';
 import ViewTenant from './components/ViewTenant';
 import AddProperty from './components/AddProperty';
+import ProtectedRoute from './components/ProtectedRoute'; // Import the ProtectedRoute component
 import './App.css';
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
-  const [isAdmin, setIsAdmin] = useState(false); // Track if user is an admin
+  const [isAdmin, setIsAdmin] = useState(false); // Track if the user is an admin
 
   const PropertyPageWrapper = () => {
     const { id } = useParams(); // Extract the property ID from the URL
@@ -40,14 +41,27 @@ const App = () => {
             }
           />
 
-          {/* Conditional routing based on admin status */}
+          {/* Protect the /dashboard route */}
           <Route
             path="/dashboard"
             element={
-              isAdmin ? <Navigate to="/admin-dashboard" /> : <UserDashboard />
+              <ProtectedRoute isLoggedIn={isLoggedIn} isAdmin={isAdmin} requireAdmin={false}>
+                <UserDashboard />
+              </ProtectedRoute>
             }
           />
-          <Route path="/admin-dashboard" element={<AdminDashboard />} />
+
+          {/* Protect the /admin-dashboard route */}
+          <Route
+            path="/admin-dashboard"
+            element={
+              <ProtectedRoute isLoggedIn={isLoggedIn} isAdmin={isAdmin} requireAdmin={true}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Other routes */}
           <Route path="/property/:id" element={<PropertyPageWrapper />} /> {/* Property route */}
           <Route path="/tenant/:id" element={<ViewTenantWrapper />} /> {/* Tenant route */}
           <Route path="/add-property" element={<AddProperty />} />
