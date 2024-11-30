@@ -18,10 +18,8 @@ const Navbar = ({ isLoggedIn, setIsLoggedIn, isAdmin, setIsAdmin }) => {
 
   const handleDashboardClick = () => {
     if (isAdmin) {
-      console.log("nav bar thinks im admin")
       navigate('/admin-dashboard'); // Navigate to Admin Dashboard if admin
     } else {
-      console.log("nav bar thinks im user")
       navigate('/dashboard'); // Navigate to User Dashboard if not admin
     }
     setMenuOpen(false); // Close the menu

@@ -22,8 +22,6 @@ const App = () => {
     setIsLoggedIn(!!token);
     setIsAdmin(adminStatus);
 
-    console.log("isLoggedIn = ", !!token);
-    console.log("isAdmin = ", adminStatus);
   }, [isLoggedIn, isAdmin]); // Include dependencies to fix the warning
 
   const PropertyPageWrapper = () => {
