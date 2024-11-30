@@ -15,11 +15,6 @@ const Register = () => {
   const [showLoginButton, setshowLoginButton] = useState(false);
   const navigate = useNavigate();
 
-  // Log the modal state when it changes
-  // useEffect(() => {
-  //   console.log("Modal state changed:", showLoginButton);
-  // }, [showLoginButton]);
-
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData({
@@ -42,9 +37,7 @@ const Register = () => {
       });
 
       if (response.ok) {
-        // console.log("Before setting modal:", showLoginButton); // Should log `false`
         setshowLoginButton(true); // Show success modal
-        // console.log("After setting modal:", showLoginButton); // This will still log `false`
       } else {
         const contentType = response.headers.get('Content-Type');
         let errorMessage = 'Error submitting application.';
