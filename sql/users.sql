@@ -4,5 +4,6 @@ CREATE TABLE users (
     lastName TEXT NOT NULL,
     email TEXT NOT NULL,
     password TEXT NOT NULL,
-    phone TEXT
+    phone TEXT NOT NULL,
+    isAdmin BOOLEAN NOT NULL,
 );

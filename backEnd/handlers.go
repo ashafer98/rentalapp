@@ -14,38 +14,34 @@ type ApplicantData struct {
     Email     string `json:"email"`
     Password  string `json:"password"`
     Phone     string `json:"phone"`
+    IsAdmin   bool   `json:"isAdmin"`
 }
 
-// Registration handler to accept and process data from the frontend
-func registerHandler(w http.ResponseWriter, r *http.Request) {
+// HTTP handler for creating a user
+func createUserHandler(w http.ResponseWriter, r *http.Request) {
+    // Parse request data, assuming it's coming as JSON
     var reqData ApplicantData
 
-    // Decode the incoming JSON data
+    // Log the incoming request body to check if isAdmin is received as expected
     err := json.NewDecoder(r.Body).Decode(&reqData)
     if err != nil {
-        http.Error(w, "Invalid input", http.StatusBadRequest)
+        http.Error(w, "Invalid request payload", http.StatusBadRequest)
         return
     }
 
-    // Hash the password before storing it
-    hashedPassword, err := hashPassword(reqData.Password)
+    // Log the request data to see what is being received
+    log.Printf("Received request: %+v", reqData)
+
+    // Create user and handle potential errors
+    err = createUser(reqData.FirstName, reqData.LastName, reqData.Email, reqData.Password, reqData.Phone, reqData.IsAdmin)
     if err != nil {
-        http.Error(w, "Error hashing password", http.StatusInternalServerError)
+        http.Error(w, err.Error(), http.StatusConflict) // Return the specific error message
         return
     }
 
-    // Create the user in the database (this is the call to the createUser function from databases.go)
-    err = createUser(reqData.FirstName, reqData.LastName, reqData.Email, hashedPassword, reqData.Phone)
-    if err != nil {
-        http.Error(w, "Error creating user", http.StatusInternalServerError)
-        return
-    }
-
-    // Send success response
     w.WriteHeader(http.StatusCreated)
-    log.Printf("New applicant registered: %s %s", reqData.FirstName, reqData.LastName)
+    w.Write([]byte("User created successfully"))
 }
-
 
 
 // Login Handler
@@ -96,4 +92,50 @@ func resetPasswordHandler(w http.ResponseWriter, r *http.Request) {
     sendResetPasswordEmail(user.Email, resetLink)
 
     w.WriteHeader(http.StatusOK)
+}
+
+
+// GetUserHandler retrieves user details based on a valid JWT token
+func getUserHandler(w http.ResponseWriter, r *http.Request) {
+    // Extract token from Authorization header
+    tokenHeader := r.Header.Get("Authorization")
+    if tokenHeader == "" {
+        http.Error(w, "Authorization token is required", http.StatusUnauthorized)
+        return
+    }
+
+    // The token usually comes as "Bearer <token>", so we split it
+    token := tokenHeader[len("Bearer "):]
+
+    // Verify the token
+    claims, err := verifyJWT(token)
+    if err != nil {
+        http.Error(w, "Invalid or expired token", http.StatusUnauthorized)
+        return
+    }
+
+    // Fetch user by email from claims
+    user, err := getUserByEmail(claims.Email)
+    if err != nil || user == nil {
+        http.Error(w, "User not found", http.StatusNotFound)
+        return
+    }
+
+    // Return the user's details, excluding the password
+    userResponse := struct {
+        ID        int    `json:"id"`
+        FirstName string `json:"firstName"`
+        LastName  string `json:"lastName"`
+        Email     string `json:"email"`
+        IsAdmin   bool   `json:"isAdmin"` // Use "bool" for boolean type
+    }{
+        ID:        user.ID,
+        FirstName: user.FirstName,
+        LastName:  user.LastName,
+        Email:     user.Email,
+        IsAdmin:   user.IsAdmin,
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(userResponse)
 }

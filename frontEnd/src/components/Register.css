@@ -1,0 +1,125 @@
+/* Card Container */
+.Register-card {
+  max-width: 400px;
+  margin: 50px auto; /* Adds spacing from top */
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background-color: #fff;
+}
+
+/* Title Styling */
+.Register-card h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  font-weight: bold;
+}
+
+/* Form Group Container */
+.form-group {
+  margin-bottom: 15px;
+  padding-left: 5px;  /* Add some padding to the left */
+  padding-right: 5px; /* Add some padding to the right */
+}
+
+/* Label Styling */
+.form-group label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+/* Input Field Styling */
+.form-group input {
+  width: calc(100% - 10px); /* Prevent input from touching the edges */
+  padding: 10px;
+  margin: 0 auto; /* Center align within the container */
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  transition: border-color 0.3s, background-color 0.3s;
+}
+
+/* Input Focus State */
+.form-group input:focus {
+  border-color: #4CAF50;
+  background-color: #f9f9f9;
+  outline: none; /* Remove default outline */
+}
+
+/* Button Styling */
+button {
+  width: calc(100% - 10px); /* Leave space around button */
+  padding: 10px;
+  margin: 10px auto; /* Add spacing around the button */
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+/* Button Hover State */
+button:hover {
+  background-color: navy;
+}
+
+/* Optional Error Message Styling */
+.error-message {
+  color: red;
+  font-size: 14px;
+  margin-top: 5px;
+}
+
+/* Responsive Design */
+@media (max-width: 500px) {
+  .Register-card {
+    padding: 15px;
+    margin: 20px;
+  }
+
+  button {
+    font-size: 14px;
+  }
+}
+
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* Modal Box */
+.modal {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  max-width: 300px;
+  width: 100%;
+}
+
+/* Modal Button */
+.modal button {
+  margin-top: 15px;
+  padding: 10px 15px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.modal button:hover {
+  background-color: navy;
+}
