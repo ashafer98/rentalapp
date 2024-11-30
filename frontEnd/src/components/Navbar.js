@@ -3,15 +3,28 @@ import { Link, useNavigate } from 'react-router-dom';
 import './Navbar.css';
 import logo from '../photos/weebbrealestaeFullLgog.jpg';
 
-const Navbar = ({ isLoggedIn, setIsLoggedIn }) => {
+const Navbar = ({ isLoggedIn, setIsLoggedIn, isAdmin, setIsAdmin }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
   const menuRef = useRef(null);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('isAdmin');
     setIsLoggedIn(false);
+    setIsAdmin(false);
     navigate('/');
+  };
+
+  const handleDashboardClick = () => {
+    if (isAdmin) {
+      console.log("nav bar thinks im admin")
+      navigate('/admin-dashboard'); // Navigate to Admin Dashboard if admin
+    } else {
+      console.log("nav bar thinks im user")
+      navigate('/dashboard'); // Navigate to User Dashboard if not admin
+    }
+    setMenuOpen(false); // Close the menu
   };
 
   useEffect(() => {
@@ -56,9 +69,9 @@ const Navbar = ({ isLoggedIn, setIsLoggedIn }) => {
           {isLoggedIn ? (
             <>
               <li>
-                <Link to="/dashboard" onClick={() => setMenuOpen(false)} className="nav-button">
+                <button onClick={handleDashboardClick} className="nav-button">
                   Dashboard
-                </Link>
+                </button>
               </li>
               <li>
                 <button onClick={handleLogout} className="nav-button logout-button">

@@ -24,11 +24,13 @@ const LoginPage = ({ setIsLoggedIn, setIsAdmin }) => {
 
       const userData = await response.json();
       setIsAdmin(userData.isAdmin); // Set the admin state
-
+      
       // Navigate to the appropriate dashboard based on the user role
       if (userData.isAdmin) {
+        localStorage.setItem('isAdmin', true); // Store the token
         navigate('/admin-dashboard');
       } else {
+        localStorage.setItem('isAdmin', false); // Store the token
         navigate('/dashboard');
       }
     } catch (error) {
